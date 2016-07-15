@@ -77,11 +77,6 @@ var chellbot = function(bot) {
                 client.say(channel, "@" + username + messages.banMe.fail);
             }
         },
-        banme: function(channel, username) {
-            var timeBan = Math.round(Math.random() * (600 - 10) + 10);
-            client.timeout(channel, username, timeBan);
-            client.say(channel, "@" + username + messages.banMe.ban + timeBan + this.secDecl(timeBan) + '.');
-        },
         banmeState: function(state, channel) {
             bot.allowedModules.banMe = state;
             if(state)
