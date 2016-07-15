@@ -1,0 +1,29 @@
+{
+  "name": "chellbot",
+  "version": "1.0.0",
+  "description": "Twitch chat bot written in Node.JS",
+  "main": "chellbot.js",
+  "dependencies": {
+    "moment": "^2.14.1",
+    "request": "^2.73.0",
+    "tmi.js": "^1.1.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node chellbot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itdevroman/chellbot.git"
+  },
+  "keywords": [
+    "bot"
+  ],
+  "author": "itdevroman",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/itdevroman/chellbot/issues"
+  },
+  "homepage": "https://github.com/itdevroman/chellbot#readme"
+}
