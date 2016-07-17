@@ -2,7 +2,7 @@
     ChellBot by itdevroman
     Twitch chat bot written in Node.JS
     https://github.com/itdevroman/chellbot
-    v1.0.0
+    v1.0.1
 */
 
 // Requires
@@ -12,26 +12,8 @@ var moment = require('moment');
 var request = require('request');
 var fs = require('fs');
 
-// Messages templates
-const messages = {
-    cmdList: 'Команды: ',
-    banMe: {
-        fail: ' вам повезло, и вы не были забанены!',
-        ban: ' вам повезло, и вы выиграли бан на ',
-        off: 'Команда !banme отключена.',
-        on: 'Команда !banme включена.'
-    },
-    time: {
-        online: 'Стрим идёт уже: ',
-        offline: 'Я вижу, что стрим не запущен.'
-    },
-    max: 'Максимальный онлайн на стриме, который мне удалось зафиксировать: ',
-    maxClear: 'Максимальный онлайн сброшен и равен нулю.',
-    vk: 'VK: '
-};
-
 // Bot main function
-var chellbot = function(bot) {
+var chellbot = function(bot, messages) {
     const host = bot.host;
 
     var options = {
@@ -105,6 +87,40 @@ var chellbot = function(bot) {
         }
     };
 
+    // Chat command to function router
+    const router = {
+        banme: function(arg1, arg2, arg3, arg4) { // TODO: Can I write this args better or just don't use them? :thinking-face:
+            if(bot.allowedModules.banMe)
+                biCommands.banme(arg1, arg2.username);
+        },
+        uptime: function(arg1, arg2, arg3, arg4) {
+            if(bot.allowedModules.time)
+                biCommands.time(arg1);
+        },
+        up: function(arg1, arg2, arg3, arg4) {
+            if(bot.allowedModules.time)
+                biCommands.time(arg1); 
+        },
+        max: function(arg1, arg2, arg3, arg4) {
+            if(bot.allowedModules.max)
+                biCommands.max(arg1);
+        },
+        banoff: function(arg1, arg2, arg3, arg4) {
+            if(bot.allowedModules.banMe) {
+                if(arg2.mod)
+                    biCommands.banmeState(false, channel);  
+            }
+        },
+        banon: function(arg1, arg2, arg3, arg4) {
+            if(arg2.mod)
+                biCommands.banmeState(true, channel);  
+        },
+        clearmax: function(arg1, arg2, arg3, arg4) {
+            if(arg2.mod)
+                biCommands.clearMax(channel);  
+        }
+    };
+
     client.connect();
 
     // Read all chat messages
@@ -114,50 +130,19 @@ var chellbot = function(bot) {
         if(bot.allowedModules.hydra)
             biCommands.hydra(channel, user.username, message);
 
-        var origMsg = message;
-        message = message.toLowerCase();
-        switch(message) {
-            case '!banme':
-                if(bot.allowedModules.banMe)
-                    biCommands.banme(channel, user.username);
-                break;
-            case '!time':
-                if(bot.allowedModules.time)
-                    biCommands.time(channel);
-                break;
-            case '!up':
-                if(bot.allowedModules.time)
-                    biCommands.time(channel);
-                break;
-            case '!uptime':
-                if(bot.allowedModules.time)
-                    biCommands.time(channel);
-                break;
-            case '!max':
-                if(bot.allowedModules.max)
-                    biCommands.max(channel);
-                break;
-            case '!banoff':
-                if(bot.allowedModules.banMe) {
-                    if(user.mod)
-                        biCommands.banmeState(false, channel);  
-                }
-                break;
-            case '!banon':
-                if(user.mod)
-                    biCommands.banmeState(true, channel);  
-                break;
-            case '!clearmax':
-                if(user.mod)
-                    biCommands.clearMax(channel);  
-                break;
+        // Is command?
+        const cmdExpr = new RegExp('^![A-z]*', 'g');
+        const cmdArr = message.match(cmdExpr);
+
+        if(cmdArr !== null && typeof(router[cmdArr[0].replace('!', '').toLowerCase()]) == 'function') { // Command
+            router[cmdArr[0].replace('!', '').toLowerCase()](channel, user, message);
         }
 
         // StrawPoll
         if(user.mod) {
             var spcmd = '!sp';
-            if (origMsg.substr(0, spcmd.length).toUpperCase() == spcmd.toUpperCase()) {
-                var poll = origMsg.replace(spcmd + ' ', '');
+            if (message.substr(0, spcmd.length).toUpperCase() == spcmd.toUpperCase()) {
+                var poll = message.replace(spcmd + ' ', '');
                 poll = poll.split(';');
 
                 if(poll.length > 2) {
@@ -260,11 +245,21 @@ var chellbot = function(bot) {
     }
 };
 
-fs.readFile('./config.json', 'utf8', function (err, data) {
+// Load configuration and messages
+fs.readFile('./config.json', 'utf8', function (err, config) {
     if (err) {
         throw new Error("Couldn't find configuration");
         return false;
     }
-    config = JSON.parse(data);
-    chellbot(config);
+
+    fs.readFile('./messages.json', 'utf8', function (err, messages) {
+        if (err) {
+            throw new Error("Couldn't find messages");
+            return false;
+        }
+        
+        config = JSON.parse(config);
+        messages = JSON.parse(messages);
+        chellbot(config, messages);
+    });
 });
