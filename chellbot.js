@@ -2,7 +2,7 @@
     ChellBot by itdevroman
     Twitch chat bot written in Node.JS
     https://github.com/itdevroman/chellbot
-    v1.0.1
+    v1.0.2
 */
 
 // Requires
@@ -176,7 +176,7 @@ var chellbot = function(bot, messages) {
     });
 
     setInterval(function() {
-            https.get('https://api.twitch.tv/kraken/streams/' + host, function(res) { // запрос к твичу без клиент ид, небезопасная херня TODO
+            https.get('https://api.twitch.tv/kraken/streams/' + bot.host, function(res) { // запрос к твичу без клиент ид, небезопасная херня TODO
                 var body = '';
 
                 res.on('data', function(chunk){
@@ -209,7 +209,7 @@ var chellbot = function(bot, messages) {
 
     if(bot.vk.enable) {
         var getGroup = function() {
-            https.get('https://api.vk.com/method/wall.get?owner_id=' + bot.vk.name + '&count=1' , function(res) {
+            https.get('https://api.vk.com/method/wall.get?owner_id=' + bot.vk.id + '&count=1' , function(res) {
                 var body = '';
 
                 res.on('data', function(chunk){
